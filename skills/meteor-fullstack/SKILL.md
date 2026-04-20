@@ -28,6 +28,7 @@ Always use the `*Async` variants on the server. Sync versions exist only for cli
 | map | `mapAsync(fn)` (on cursor) | `map(fn)` |
 | Observe | `observeAsync(callbacks)` | `observe(callbacks)` |
 | Create index | `createIndexAsync(index, options)` | — |
+| Send email | `Email.sendAsync(options)` | `Email.send(options)` |
 
 Publications still return **sync cursors** via `collection.find(...)` for live-query reactivity — that hasn't changed.
 
@@ -210,6 +211,21 @@ const userId = Meteor.userId();
 const user = useTracker(() => Meteor.user(), []);
 ```
 
+### Sending Email
+
+Always use `Email.sendAsync` on the server — it returns a Promise and fits the async-first model:
+
+```js
+import { Email } from 'meteor/email';
+
+Meteor.methods({
+  async 'notifications.send'(to, subject, html) {
+    if (!this.userId) throw new Meteor.Error('not-authorized');
+    await Email.sendAsync({ from: 'noreply@example.com', to, subject, html });
+  },
+});
+```
+
 ---
 
 ## What to Watch Out For
@@ -230,7 +246,11 @@ Mixed barrels that re-export models, components, actions, and schemas from a sin
 
 Using `collection.insert()` (sync) on the server in Meteor 3 will throw or behave unpredictably. Always use `insertAsync`, `updateAsync`, etc. on the server.
 
-### 5. Publication setup vs cursor return
+### 5. `Email.send` on the server
+
+`Email.send` is the legacy sync form. In Meteor 3, always use `await Email.sendAsync(options)` inside method bodies so errors surface correctly and the Promise is properly awaited.
+
+### 6. Publication setup vs cursor return
 
 Publication functions can be `async` for setup work (auth checks, DB lookups), but must ultimately return a sync cursor or call `this.ready()`:
 
