@@ -280,6 +280,7 @@ For deeper coverage, read these when working on specific areas:
 | `references/collections-models.md` | Defining collections, schemas, helpers, ORM patterns, indexes, aggregation |
 | `references/async-patterns.md` | Fibers→async migration, async method patterns, async publication setup, common mistakes |
 | `references/architecture.md` | Project structure, import rules, circular dependency prevention, client/server split |
+| `references/performance.md` | Publication performance optimization, separating auth, deferring work, projections |
 
 ---
 
