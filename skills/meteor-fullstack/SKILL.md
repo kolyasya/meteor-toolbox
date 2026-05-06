@@ -262,6 +262,10 @@ Meteor.publish('items.forTeam', async function (teamId) {
 });
 ```
 
+### 7. `rawCollection()` bypasses collection hooks
+
+Using `Collection.rawCollection()` (often used for bulk operations or specialized Mongo methods to optimize performance) completely bypasses Meteor's collection hooks (e.g., `matb33:collection-hooks` or `Meteor-Community-Packages/meteor-collection-hooks`). A common pitfall is switching an operation to `rawCollection` for optimization, only to inadvertently lose the side effects provided by hooks (which might modify various fields, calculate derived data, or sync external states). If you use `rawCollection()`, you must manually replicate any field modifications these hooks would have performed, or explicitly trigger the necessary side-effects in your code.
+
 ---
 
 ## Reference Files
