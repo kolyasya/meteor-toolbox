@@ -242,17 +242,13 @@ This browser error occurs when an async method stub is running (simulation conte
 
 Mixed barrels that re-export models, components, actions, and schemas from a single index file are the #1 source of `Element type is invalid` and `undefined` errors in Meteor apps. Prefer direct file imports on hot paths.
 
-### 4. Sync collection APIs on the server
+### 4. Returning non-EJSON values from methods
 
-Using `collection.insert()` (sync) on the server in Meteor 3 will throw or behave unpredictably. Always use `insertAsync`, `updateAsync`, etc. on the server.
+Method return values must be EJSON-serializable (plain objects, arrays, strings, numbers, dates, binary, ObjectID). Functions, class instances, and circular references will fail.
 
-### 5. `Email.send` on the server
+### 5. Publication setup vs cursor return
 
-`Email.send` is the legacy sync form. In Meteor 3, always use `await Email.sendAsync(options)` inside method bodies so errors surface correctly and the Promise is properly awaited.
-
-### 6. Publication setup vs cursor return
-
-Publication functions can be `async` for setup work (auth checks, DB lookups), but must ultimately return a sync cursor or call `this.ready()`:
+Publication functions can be `async` for setup work, but must return a sync cursor or call `this.ready()`:
 
 ```js
 Meteor.publish('items.forTeam', async function (teamId) {
@@ -264,7 +260,7 @@ Meteor.publish('items.forTeam', async function (teamId) {
 
 ### 7. `rawCollection()` bypasses collection hooks
 
-Using `Collection.rawCollection()` (often used for bulk operations or specialized Mongo methods to optimize performance) completely bypasses Meteor's collection hooks (e.g., `matb33:collection-hooks` or `Meteor-Community-Packages/meteor-collection-hooks`). A common pitfall is switching an operation to `rawCollection` for optimization, only to inadvertently lose the side effects provided by hooks (which might modify various fields, calculate derived data, or sync external states). If you use `rawCollection()`, you must manually replicate any field modifications these hooks would have performed, or explicitly trigger the necessary side-effects in your code.
+`rawCollection()` (used for bulk operations/native Mongo methods) bypasses Meteor's collection hooks. You must manually replicate side-effects (e.g., `updatedAt`, sync logic). See `references/collections-models.md`.
 
 ---
 
@@ -274,13 +270,13 @@ For deeper coverage, read these when working on specific areas:
 
 | File | When to read |
 |------|-------------|
-| `references/methods-rpc.md` | Writing methods, stubs, optimistic UI, `callAsync` vs `applyAsync`, error handling |
-| `references/pubsub.md` | Publications, subscriptions, composite pubs, SubsManager, counts, reactive data flow |
-| `references/react-integration.md` | `useTracker`, `withTracker`, subscription lifecycle in React, data containers |
-| `references/collections-models.md` | Defining collections, schemas, helpers, ORM patterns, indexes, aggregation |
-| `references/async-patterns.md` | Fibers→async migration, async method patterns, async publication setup, common mistakes |
-| `references/architecture.md` | Project structure, import rules, circular dependency prevention, client/server split |
-| `references/performance.md` | Publication performance optimization, separating auth, deferring work, projections |
+| `references/methods-rpc.md` | Stubs, optimistic UI, `callAsync` vs `applyAsync`, error handling |
+| `references/pubsub.md` | Composite publications, SubsManager, reactive counts, data flow |
+| `references/react-integration.md` | `useTracker` vs `withTracker`, component lifecycle, container patterns |
+| `references/collections-models.md` | Schemas, helpers, indexes, aggregation, **`rawCollection` hooks pitfall** |
+| `references/async-patterns.md` | Fibers→async migration, async method/publication patterns |
+| `references/architecture.md` | Project structure, import rules, circular dependency prevention |
+| `references/performance.md` | **Publication polling optimization**, auth separation, field projections |
 
 ---
 

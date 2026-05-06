@@ -222,6 +222,40 @@ async function getProjectStats(projectId) {
 
 `rawCollection()` returns the underlying Node MongoDB driver collection object — you get access to all native MongoDB operations.
 
+## The `rawCollection()` Pitfall
+
+Using `rawCollection()` (often for bulk operations like `bulkWrite` or `insertMany`) **completely bypasses Meteor's collection hooks** (e.g., `Meteor-Community-Packages/meteor-collection-hooks`).
+
+### Common Failure
+Switching to `rawCollection` for speed but forgetting that your schema or hooks normally handle:
+- `updatedAt` / `createdAt` timestamps.
+- `createdBy` / `modifiedBy` user IDs.
+- Denormalized field syncing (e.g., counting items in a category).
+- Search index updates.
+
+### Manual Hook Replication
+If you must use `rawCollection`, you must manually include these fields in your modifier:
+
+```js
+const now = new Date();
+const userId = Meteor.userId();
+
+await Todos.rawCollection().bulkWrite([
+  {
+    updateOne: {
+      filter: { _id: 'abc' },
+      update: { 
+        $set: { 
+          status: 'done',
+          updatedAt: now,      // Replicating hook logic
+          modifiedBy: userId,  // Replicating hook logic
+        } 
+      }
+    }
+  }
+]);
+```
+
 ## ORM / Model Layer Patterns
 
 ### Simple model pattern

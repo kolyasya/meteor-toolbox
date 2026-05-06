@@ -1,8 +1,15 @@
-# Publication Performance (Polling Mode)
+With oplog disabled, all reactive queries poll. Use this checklist for performance:
 
-With oplog disabled, all reactive queries poll. These patterns reduce polling cost in Meteor 3 async environments.
+- [ ] **Projections**: Are you using `fields` to limit BSON size?
+- [ ] **Transforms**: Can you use `transform: null` to avoid helper overhead?
+- [ ] **Auth**: Is your reactive cursor doing complex permission checks?
+- [ ] **Composite**: Are you using `publishComposite` for single collections?
+
+---
 
 ### 1. Separate Auth from Reactive Cursor
+
+**Key Rule**: Do complex auth once at publication start; return a simple, indexed cursor for the reactive part.
 
 Complex access selectors (`$or`, `$and`, role checks) poll the entire collection. Move auth to a one-time check at setup; keep the reactive cursor minimal.
 
@@ -75,3 +82,9 @@ return Teams.find(selector, {
 ```
 
 For helpers that load related data (e.g., `getUserInfo`), define a constant with required fields and reuse it across all call sites.
+
+### 5. Use `rawCollection` for Bulk Operations
+
+For massive updates, Meteor's `updateAsync({ ... }, { multi: true })` can be slow as it triggers hooks for every document. Use `rawCollection().bulkWrite()` for maximum speed, but **be careful**: this bypasses all Meteor hooks.
+
+See `references/collections-models.md` for how to replicate hooks manually when using `rawCollection`.
