@@ -262,6 +262,10 @@ Meteor.publish('items.forTeam', async function (teamId) {
 
 `rawCollection()` (used for bulk operations/native Mongo methods) bypasses Meteor's collection hooks. You must manually replicate side-effects (e.g., `updatedAt`, sync logic). See `references/collections-models.md`.
 
+### 8. DDP queue blocking — async methods still block each other
+
+Even in Meteor 3, where methods are natively `async`, the DDP server preserves **sequential per-client execution** by default. A method awaiting a slow external API will block all subsequent method calls from that same client until it resolves. Fix: call `this.unblock()` at the top of methods that are safe to run in parallel (after auth guards). Never unblock write methods whose results are consumed immediately by a follow-up method from the same client (race condition). See `references/performance.md` for the full guide including the `this.unblock()` vs. `Meteor.defer()` decision matrix.
+
 ---
 
 ## Reference Files
@@ -276,7 +280,7 @@ For deeper coverage, read these when working on specific areas:
 | `references/collections-models.md` | Schemas, helpers, indexes, aggregation, **`rawCollection` hooks pitfall** |
 | `references/async-patterns.md` | Fibers→async migration, async method/publication patterns |
 | `references/architecture.md` | Project structure, import rules, circular dependency prevention |
-| `references/performance.md` | **Publication polling optimization**, auth separation, field projections |
+| `references/performance.md` | **`this.unblock()` / DDP queue parallelism**, `Meteor.defer()`, publication polling optimization, auth separation, field projections |
 
 ---
 
