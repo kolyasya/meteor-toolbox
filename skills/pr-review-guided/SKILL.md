@@ -1,6 +1,6 @@
 ---
 name: pr-review-guided
-description: Guided, file-by-file PR review where the user controls the pace. Fetches the PR diff via the `gh` CLI, sorts all changed files by number of lines (smallest first), and reviews them one-by-one as the user says "next". For each file it shows the diff, reads relevant surrounding context from the codebase (callers, schemas, tests) only when needed to confirm a bug, then gives a concise analysis and verdict. Flags real defects inline with exact fix proposals. Respects project-specific PR_REVIEW_INSTRUCTIONS.md rules when present. Use this skill whenever someone wants to review a GitHub PR interactively, step through a PR file by file, or do a guided code review of a pull request. Also triggers on "review pr", "sequential review", "file by file review", or "let's review this PR together".
+description: Guided, file-by-file PR review where the user controls the pace. Fetches the PR diff and metadata (using gh CLI, GitHub MCP, or local git fallbacks), sorts all changed files by number of lines (smallest first), and reviews them one-by-one as the user says "next". For each file it shows the diff, reads relevant surrounding context from the codebase (callers, schemas, tests) only when needed to confirm a bug, then gives a concise analysis and verdict. Flags real defects inline with exact fix proposals. Respects project-specific PR_REVIEW_INSTRUCTIONS.md rules when present. Use this skill whenever someone wants to review a GitHub PR interactively, step through a PR file by file, or do a guided code review of a pull request. Also triggers on "review pr", "sequential review", "file by file review", or "let's review this PR together".
 ---
 
 # Guided PR Review
@@ -45,20 +45,50 @@ If a matching skill file is found, load it and apply its standards as the review
 
 ### 3. Fetch PR metadata
 
-```bash
-gh pr view <PR_NUMBER>
-gh pr view <PR_NUMBER> --json baseRefName,headRefName,commits
-```
+Attempt to fetch the PR metadata using the following strategies in order:
 
-Extract: title, base branch, head branch, description/requirements, any acceptance criteria.
+1. **`gh` CLI**:
+   ```bash
+   gh pr view <PR_NUMBER> --json baseRefName,headRefName,title,body
+   ```
+2. **GitHub MCP**:
+   Call the `get_pull_request` tool from the `github` MCP server with the owner, repository name, and PR number.
+3. **Local git branch info & User Prompt**:
+   - Infer the head branch using `git branch --show-current` or `git log -n 1 --pretty=format:"%H"`.
+   - Ask the user for the base branch (defaulting to `main` or `master` if unknown).
+   - Ask the user for the PR title and description, or read the recent commits with `git log -n 5`.
+
+Extract: title, base branch, head branch, description/requirements, and any acceptance criteria.
 
 ### 4. Fetch the diff
 
-Prefer local git diff over `gh pr diff` — it's faster and doesn't truncate:
-```bash
-git diff origin/<base>...HEAD
-git diff --stat origin/<base>...HEAD
-```
+Attempt to fetch the PR diff and changes using the following strategies in order:
+
+1. **`gh` CLI**:
+   If branches are tracked locally:
+   ```bash
+   git diff origin/<base>...HEAD
+   git diff --stat origin/<base>...HEAD
+   ```
+   Otherwise, fetch the diff directly from GitHub:
+   ```bash
+   gh pr diff <PR_NUMBER>
+   ```
+2. **GitHub MCP**:
+   - Call `get_pull_request_files` to list the changed files.
+   - For files with small changes, fetch the file contents or comparison via GitHub MCP.
+3. **Local git fetch and compare**:
+   If CLI and MCP are unavailable:
+   - Fetch the remote base branch:
+     ```bash
+     git fetch origin <base>
+     ```
+   - Compare the branches locally:
+     ```bash
+     git diff origin/<base>...HEAD
+     git diff --stat origin/<base>...HEAD
+     ```
+   - If `origin/<base>` cannot be fetched, compare against the parent branch/local default branch (`main` or `master`).
 
 Save the diff to a scratch file for reference throughout the session.
 
