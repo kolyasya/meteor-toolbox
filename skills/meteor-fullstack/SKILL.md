@@ -258,6 +258,25 @@ Meteor.publish('items.forTeam', async function (teamId) {
 });
 ```
 
+### 6. Always use field projections in `find()` / `findOneAsync()`
+
+Fetching full documents when you only need a few fields wastes memory, bandwidth, and serialization time. Pass a `fields` (or `projection`) option whenever you don't need the whole document:
+
+```js
+// Bad — fetches every field on every matching document
+const names = await Users.find({ active: true }).fetchAsync();
+
+// Good — only pull what you need
+const names = await Users.find({ active: true }, { fields: { username: 1, email: 1 } }).fetchAsync();
+
+// In publications — reduces data pushed over DDP
+Meteor.publish('todos.titles', function () {
+  return Todos.find({ userId: this.userId }, { fields: { text: 1, done: 1, createdAt: 1 } });
+});
+```
+
+This matters especially in publications: every extra field is serialized and pushed to every subscribed client. See `references/performance.md` for projection strategies.
+
 ### 7. `rawCollection()` bypasses collection hooks
 
 `rawCollection()` (used for bulk operations/native Mongo methods) bypasses Meteor's collection hooks. You must manually replicate side-effects (e.g., `updatedAt`, sync logic). See `references/collections-models.md`.
@@ -265,6 +284,47 @@ Meteor.publish('items.forTeam', async function (teamId) {
 ### 8. DDP queue blocking — async methods still block each other
 
 Even in Meteor 3, where methods are natively `async`, the DDP server preserves **sequential per-client execution** by default. A method awaiting a slow external API will block all subsequent method calls from that same client until it resolves. Fix: call `this.unblock()` at the top of methods that are safe to run in parallel (after auth guards). Never unblock write methods whose results are consumed immediately by a follow-up method from the same client (race condition). See `references/performance.md` for the full guide including the `this.unblock()` vs. `Meteor.defer()` decision matrix.
+
+### 9. Multiple publications, same collection, different projections — MergeBox wins unpredictably
+
+When two active subscriptions publish the **same document `_id`** into the **same collection name** but with different `fields` projections, Meteor's MergeBox merges them on the client. The rules:
+
+- **Top-level fields are unioned** — if pub A publishes `title` and pub B publishes `body`, the client doc gets both. Good.
+- **Conflicting top-level fields are resolved arbitrarily** — if both pubs publish `status` but with different values, one wins. Which one? Unspecified.
+- **No deep merge** — if pub A sends `{ profile: { name: 'Alice' } }` and pub B sends `{ profile: { age: 30 } }`, the entire `profile` object comes from whichever publication "wins" for that field. The other sub-fields silently disappear.
+- **Unsub surprise** — when one subscription stops, the MergeBox removes the fields it contributed. A component that assumed a field exists may suddenly see `undefined`.
+
+**The fix: virtual collections.** When you need the same document published with genuinely different shapes (e.g., list view vs. full detail), publish into separate client-side collection names:
+
+```js
+// server — two publications, two DDP collection namespaces
+Meteor.publish('messages.list', function (channelId) {
+  // Lightweight: just what the list UI needs
+  return Messages.find(
+    { channelId },
+    { fields: { authorId: 1, preview: 1, createdAt: 1 } }
+  );
+  // DDP collection name defaults to 'messages'
+});
+
+Meteor.publish('messages.full', function (messageId) {
+  // Use low-level API to push into a DIFFERENT client collection name
+  const self = this;
+  const doc = Messages.findOne(messageId); // or use cursor + observe
+  if (doc) self.added('messagesFull', doc._id, doc);
+  self.ready();
+});
+```
+
+```js
+// client — two separate Minimongo collections, no merge conflict
+export const Messages     = new Mongo.Collection('messages');     // list view
+export const MessagesFull = new Mongo.Collection('messagesFull'); // detail view
+```
+
+Naming convention: `MessagesFull`, `MessagesStripped`, `MessagesList` — whatever communicates the intended field shape. The key is that **each virtual collection has a single, stable field contract**.
+
+> Use this pattern whenever: (a) you need different field shapes of the same document in the same session, (b) you have a public list projection and a richer authenticated detail projection, or (c) you've seen fields mysteriously disappear when a second subscription activates.
 
 ---
 
@@ -275,7 +335,7 @@ For deeper coverage, read these when working on specific areas:
 | File | When to read |
 |------|-------------|
 | `references/methods-rpc.md` | Stubs, optimistic UI, `callAsync` vs `applyAsync`, error handling |
-| `references/pubsub.md` | Composite publications, SubsManager, reactive counts, data flow |
+| `references/pubsub.md` | Composite publications, SubsManager, reactive counts, data flow, **MergeBox / virtual collection pattern** |
 | `references/react-integration.md` | `useTracker` vs `withTracker`, component lifecycle, container patterns |
 | `references/collections-models.md` | Schemas, helpers, indexes, aggregation, **`rawCollection` hooks pitfall** |
 | `references/async-patterns.md` | Fibers→async migration, async method/publication patterns |
