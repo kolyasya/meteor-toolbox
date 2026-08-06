@@ -1,29 +1,42 @@
 # Meteor Toolbox — Agent Skills
 
-A curated collection of AI agent skills for Meteor.js development and code review workflows.
+A curated collection of AI agent skills for Meteor.js development, supply chain security, and code review workflows.
 
 ## Installation
+
+Install all skills in this repository:
 
 ```bash
 npx skills add kolyasya/meteor-toolbox
 ```
 
-This installs all skills in this repository into your agent.
+Or install a specific skill:
+
+```bash
+npx skills add kolyasya/meteor-toolbox --skill meteor-fullstack
+npx skills add kolyasya/meteor-toolbox --skill meteor-supply-chain-audit
+npx skills add kolyasya/meteor-toolbox --skill pr-review-guided
+```
 
 ---
 
 ## Available Skills
 
-| Skill | Description |
-|-------|-------------|
-| [`meteor-fullstack`](#meteor-fullstack) | Full-stack Meteor 3.x development: async APIs, methods, pub/sub, React integration, MongoDB, GraphQL |
-| [`pr-review-guided`](#pr-review-guided) | Guided, file-by-file GitHub PR review with user-controlled pacing |
+| Skill | Description | Install Command |
+|-------|-------------|-----------------|
+| [`meteor-fullstack`](#meteor-fullstack) | Full-stack Meteor 3.x development: async APIs, methods, pub/sub, React integration, MongoDB, GraphQL | `npx skills add kolyasya/meteor-toolbox --skill meteor-fullstack` |
+| [`meteor-supply-chain-audit`](#meteor-supply-chain-audit) | Audit Meteor + pnpm supply chain hygiene: lockfiles, `Npm.depends` risk, and CI enforcement | `npx skills add kolyasya/meteor-toolbox --skill meteor-supply-chain-audit` |
+| [`pr-review-guided`](#pr-review-guided) | Guided, file-by-file GitHub PR review with user-controlled pacing | `npx skills add kolyasya/meteor-toolbox --skill pr-review-guided` |
 
 ---
 
 ### `meteor-fullstack`
 
 Full-stack Meteor 3.x development with React, MongoDB, async APIs, methods, pub/sub, and GraphQL.
+
+```bash
+npx skills add kolyasya/meteor-toolbox --skill meteor-fullstack
+```
 
 **Triggers on:** `Meteor`, `Meteor.js`, `Meteor 3`, `MeteorJS`, `callAsync`, `useTracker`, `withTracker`, Meteor methods, Meteor publications, Meteor subscriptions, `SubsManager`, `Minimongo`, `DDP`, `Mongo.Collection`, `Meteor.Error`, optimistic UI, Fibers migration, meteor async.
 
@@ -38,9 +51,33 @@ Full-stack Meteor 3.x development with React, MongoDB, async APIs, methods, pub/
 
 ---
 
+### `meteor-supply-chain-audit`
+
+Audit a Meteor + pnpm project for supply chain hygiene, lockfile drift, `Npm.depends` risk, and CI enforcement gaps.
+
+```bash
+npx skills add kolyasya/meteor-toolbox --skill meteor-supply-chain-audit
+```
+
+**Invocation:** User-invoked (`meteor-supply-chain-audit` or `/meteor-supply-chain-audit`).
+
+**Covers:**
+- Lockfile inventory & consolidation (eliminating competing `package-lock.json` / `yarn.lock`)
+- Package manager & `.npmrc` restriction checks (`engine-strict`, `packageManager`, script allowlists)
+- Meteor `Npm.depends` risk assessment & dynamic version range detection (`^`, `~`, `*`)
+- Git hygiene for `.npm` build artifacts & shrinkwrap files
+- CI/CD frozen lockfile enforcement, build/deploy job separation, and container recompile checks
+- Generates a prioritized remediation report
+
+---
+
 ### `pr-review-guided`
 
 Guided, file-by-file PR review where the user controls the pace.
+
+```bash
+npx skills add kolyasya/meteor-toolbox --skill pr-review-guided
+```
 
 **Triggers on:** "review pr", "review this PR", "sequential review", "file by file review", "let's review this PR together".
 
@@ -57,3 +94,4 @@ Guided, file-by-file PR review where the user controls the pace.
 ## Contributing
 
 Suggestions and Pull Requests for new skills or improvements are welcome!
+
