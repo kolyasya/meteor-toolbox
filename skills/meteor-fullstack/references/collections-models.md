@@ -360,6 +360,24 @@ Todos.find({ dueDate: { $exists: true } });
 
 // Regex
 Todos.find({ text: { $regex: /urgent/i } });
+
+### Case-Insensitive Search (Collation)
+
+Meteor 3.5 introduces full MongoDB Collation support, allowing reliable case-insensitive search and locale-aware sorting directly in queries and indexes, without falling back to polling.
+
+```js
+// Find 'urgent' case-insensitively using collation
+Todos.find(
+  { text: 'urgent' },
+  { collation: { locale: 'en', strength: 2 } }
+);
+
+// Corresponding Index
+await Todos.createIndexAsync(
+  { text: 1 },
+  { collation: { locale: 'en', strength: 2 } }
+);
+```
 ```
 
 ### Update operators

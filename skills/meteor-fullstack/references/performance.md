@@ -97,9 +97,51 @@ Meteor.methods({
 
 ---
 
-## Publication / Oplog Performance
+## MongoDB Change Streams & Reactivity
 
-With oplog disabled, all reactive queries poll. Use this checklist for performance:
+Meteor 3.5 switched the default reactivity mechanism from Oplog tailing to MongoDB Change Streams (`["changeStreams", "oplog", "polling"]`). This is a major architectural shift: Change Streams move the filtering workload to the MongoDB server, drastically reducing CPU and memory on your Node processes.
+
+### Requirements & Fallbacks
+- **Requires MongoDB 6+** running as a Replica Set or Sharded Cluster.
+- Works on managed and serverless DB tiers (Atlas Shared, Atlas Serverless) where Oplog access is unavailable.
+- Meteor automatically falls back to `oplog` or `polling` if MongoDB version is too low, standalone, or if a query uses unsupported operators (like `skip` and `limit`).
+
+### Configuration and Tuning
+
+Change Streams work automatically out of the box. You can tune them in `settings.json`:
+
+```json
+{
+  "packages": {
+    "mongo": {
+      "reactivity": ["changeStreams", "oplog", "polling"],
+      "changeStream": {
+        "delay": { "error": 100, "close": 100 },
+        "waitUntilCaughtUpTimeoutMs": 1000
+      }
+    }
+  }
+}
+```
+
+**Trade-off warning:** Change streams are highly efficient for narrow selectors. However, extremely broad selectors on a highly mutated collection push heavy matching load onto the Mongo cluster. If Mongo becomes the bottleneck on a specific heavy-write collection, you can force the app back to oplog tailing by changing `"reactivity": ["oplog", "polling"]`.
+
+---
+
+## DDP Network Optimizations
+
+### DDP Session Resumption
+Brief disconnects (mobile handoffs, sleeping tabs, flaky Wi-Fi) no longer drop state. By default, a reconnect within the 15s grace period resumes the existing session. Active subscriptions stay alive, and pending method calls are processed instead of failing. This prevents severe CPU spikes during reconnect storms because the server doesn't have to re-publish all subscriptions from scratch.
+
+### Pluggable DDP Transport (`uws` / `DISABLE_SOCKJS`)
+- **Transport**: Switch to `uws` (uWebSockets) instead of the default `sockjs` for lower latency and higher throughput on internal or proxy-controlled deployments.
+- **DISABLE_SOCKJS**: Fully drop the SockJS polling fallback on the client to reduce bundle size and connection overhead when you don't need it.
+
+---
+
+## Publication / Polling Performance
+
+If you fall back to polling, use this checklist for performance:
 
 - [ ] **Projections**: Are you using `fields` to limit BSON size?
 - [ ] **Transforms**: Can you use `transform: null` to avoid helper overhead?

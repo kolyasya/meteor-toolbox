@@ -1,13 +1,13 @@
 ---
 name: meteor-fullstack
-description: "Full-stack Meteor 3.x development with React, MongoDB, async APIs, methods, pub/sub, and GraphQL. Use this skill when working on any Meteor project — writing methods, publications, subscriptions, React data containers, collection helpers, ORM patterns, Meteor-to-React integration via useTracker/withTracker, async migration from Fibers, optimistic UI, DDP, or debugging Meteor-specific issues like circular dependencies, method stubs, and simulation errors. Trigger on: Meteor, Meteor.js, Meteor 3, MeteorJS, callAsync, useTracker, withTracker, Meteor methods, Meteor publications, Meteor subscriptions, SubsManager, Minimongo, DDP, Mongo.Collection, Meteor.Error, optimistic UI, Fibers migration, meteor async."
+description: "Full-stack Meteor 3.x development with React, MongoDB, async APIs, methods, pub/sub, and GraphQL. Use this skill when working on any Meteor project — writing methods, publications, subscriptions, React data containers, collection helpers, ORM patterns, REST APIs with accounts-express, Meteor-to-React integration via useTracker/withTracker, async migration from Fibers, optimistic UI, DDP, or debugging Meteor-specific issues like circular dependencies, method stubs, and simulation errors. Trigger on: Meteor, Meteor.js, Meteor 3, MeteorJS, callAsync, useTracker, withTracker, Meteor methods, Meteor publications, Meteor subscriptions, SubsManager, Minimongo, DDP, Mongo.Collection, Meteor.Error, optimistic UI, Fibers migration, meteor async, accounts-express."
 ---
 
 # Meteor Full-Stack Development (v3.x + React)
 
-Modern Meteor 3.x full-stack development guide covering async-first patterns, React integration, MongoDB collections, methods, pub/sub, and project architecture.
+Modern Meteor 3.x (and 3.5+) full-stack development guide covering async-first patterns, React integration, MongoDB collections, methods, pub/sub, and project architecture.
 
-Meteor 3 removed Fibers entirely — all server-side I/O is standard async/await. This is the single most important thing to internalize: every collection operation, every method body, every publication setup function that touches the database must be async.
+Meteor 3 removed Fibers entirely — all server-side I/O is standard async/await. This is the single most important thing to internalize: every collection operation, every method body, every publication setup function that touches the database must be async. Node 24 is the standard runtime starting in Meteor 3.5.
 
 ---
 
@@ -75,7 +75,29 @@ const { todos, isLoading } = useTracker(() => {
 }, []);
 ```
 
-Read `references/pubsub.md` for composite publications, SubsManager caching, counts, and publication wrappers.
+Read `references/pubsub.md` for composite publications, SubsManager caching, counts, publication wrappers, and MongoDB Change Streams configuration.
+
+### REST APIs (accounts-express)
+
+Build authenticated REST endpoints seamlessly using Express and `accounts-express`:
+
+```js
+import express from 'express';
+import { WebApp } from 'meteor/webapp';
+import { createAuthMiddleware } from 'meteor/accounts-express';
+
+const app = express();
+app.use('/api', createAuthMiddleware({ required: true }));
+
+app.get('/api/me', async (req, res) => {
+  const user = await Meteor.userAsync();
+  res.json({ userId: Meteor.userId(), email: user?.emails?.[0]?.address });
+});
+
+WebApp.handlers.use(app);
+```
+
+Read `references/architecture.md` for REST API module organization.
 
 ### React Integration
 
@@ -209,6 +231,10 @@ const userId = Meteor.userId();
 
 // Reactive in useTracker
 const user = useTracker(() => Meteor.user(), []);
+
+// Async client logins
+await Meteor.loginWithPasswordAsync(email, password);
+await Meteor.loginWithTokenAsync(token);
 ```
 
 ### Sending Email
@@ -334,13 +360,13 @@ For deeper coverage, read these when working on specific areas:
 
 | File | When to read |
 |------|-------------|
-| `references/methods-rpc.md` | Stubs, optimistic UI, `callAsync` vs `applyAsync`, error handling |
+| `references/methods-rpc.md` | Stubs, optimistic UI, `callAsync` vs `applyAsync`, error handling, `this.name` |
 | `references/pubsub.md` | Composite publications, SubsManager, reactive counts, data flow, **MergeBox / virtual collection pattern** |
 | `references/react-integration.md` | `useTracker` vs `withTracker`, component lifecycle, container patterns |
-| `references/collections-models.md` | Schemas, helpers, indexes, aggregation, **`rawCollection` hooks pitfall** |
+| `references/collections-models.md` | Schemas, helpers, indexes, aggregation, **`rawCollection` hooks pitfall**, MongoDB Collation |
 | `references/async-patterns.md` | Fibers→async migration, async method/publication patterns |
-| `references/architecture.md` | Project structure, import rules, circular dependency prevention |
-| `references/performance.md` | **`this.unblock()` / DDP queue parallelism**, `Meteor.defer()`, publication polling optimization, auth separation, field projections |
+| `references/architecture.md` | Project structure, import rules, circular dependency prevention, REST API (`accounts-express`) |
+| `references/performance.md` | **`this.unblock()` / DDP queue parallelism**, `Meteor.defer()`, **MongoDB Change Streams**, DDP Session Resumption, publication polling optimization, auth separation, field projections |
 
 ---
 

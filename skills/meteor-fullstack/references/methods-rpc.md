@@ -48,6 +48,7 @@ Inside a method body, `this` provides:
 | `this.userId` | ID of the logged-in user (null if unauthenticated) |
 | `this.connection` | DDP connection object (null for server-to-server or REST calls) |
 | `this.isSimulation` | `true` when running as a client stub |
+| `this.name` | Name of the current method (e.g., `'todos.create'`) |
 | `this.unblock()` | Allow the next method from this client to run without waiting for this one |
 
 ### Using `this.unblock()`
@@ -278,10 +279,15 @@ Use `ddp-rate-limiter` to prevent method abuse:
 ```js
 import { DDPRateLimiter } from 'meteor/ddp-rate-limiter';
 
+// Matchers can now be async in Meteor 3.5+
 DDPRateLimiter.addRule({
   type: 'method',
   name: 'todos.create',
-  userId: null, // apply to all users (or specify a function)
+  async userId(userId) {
+    if (!userId) return true;
+    const user = await Meteor.users.findOneAsync(userId);
+    return !user?.roles?.includes('premium'); // limit only non-premium users
+  },
   connectionId: () => true,
 }, 5, 1000); // 5 calls per 1000ms
 ```

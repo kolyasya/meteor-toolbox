@@ -307,6 +307,38 @@ const resolvers = {
 };
 ```
 
+## REST APIs & Authentication (`accounts-express`)
+
+To build authenticated REST endpoints outside of DDP, use the official `accounts-express` package. It provides an Express middleware that automatically validates `Authorization: Bearer` headers and the `meteor_login_token` cookie.
+
+```js
+// server/rest-api.js
+import express from 'express';
+import { WebApp } from 'meteor/webapp';
+import { createAuthMiddleware } from 'meteor/accounts-express';
+
+const app = express();
+
+// Protect endpoints under /api
+// If token is missing/invalid, it automatically returns 401
+app.use('/api', createAuthMiddleware({ required: true }));
+
+app.get('/api/profile', async (req, res) => {
+  // Meteor.userId() and Meteor.userAsync() work natively here!
+  const user = await Meteor.userAsync();
+  
+  res.json({
+    id: Meteor.userId(),
+    email: user.emails[0].address
+  });
+});
+
+// Mount the express app onto Meteor's WebApp
+WebApp.handlers.use(app);
+```
+
+This pattern eliminates the need for manual token parsing and integrates seamlessly with the rest of your Meteor server logic.
+
 ## Meteor Packages vs npm
 
 Meteor has its own package system (`.meteor/packages`) alongside npm:
