@@ -13,6 +13,7 @@ npx skills add kolyasya/meteor-toolbox
 Or install a specific skill:
 
 ```bash
+npx skills add kolyasya/meteor-toolbox --skill docs-maintainer
 npx skills add kolyasya/meteor-toolbox --skill meteor-fullstack
 npx skills add kolyasya/meteor-toolbox --skill meteor-supply-chain-audit
 npx skills add kolyasya/meteor-toolbox --skill pr-review-guided
@@ -24,9 +25,29 @@ npx skills add kolyasya/meteor-toolbox --skill pr-review-guided
 
 | Skill | Description | Install Command |
 |-------|-------------|-----------------|
+| [`docs-maintainer`](#docs-maintainer) | Maintain repository documentation as a supplement to code | `npx skills add kolyasya/meteor-toolbox --skill docs-maintainer` |
 | [`meteor-fullstack`](#meteor-fullstack) | Full-stack Meteor 3.x development: async APIs, methods, pub/sub, React integration, MongoDB, GraphQL | `npx skills add kolyasya/meteor-toolbox --skill meteor-fullstack` |
 | [`meteor-supply-chain-audit`](#meteor-supply-chain-audit) | Audit Meteor + pnpm supply chain hygiene: lockfiles, `Npm.depends` risk, and CI enforcement | `npx skills add kolyasya/meteor-toolbox --skill meteor-supply-chain-audit` |
 | [`pr-review-guided`](#pr-review-guided) | Guided, file-by-file GitHub PR review with user-controlled pacing | `npx skills add kolyasya/meteor-toolbox --skill pr-review-guided` |
+
+---
+
+### `docs-maintainer`
+
+Maintain repository documentation as a supplement to code, never a substitute.
+
+```bash
+npx skills add kolyasya/meteor-toolbox --skill docs-maintainer
+```
+
+**Triggers on:** `docs drift`, `markdown files`, `documentation`, `ADR`, `architecture decision record`, `glossary`, `domain language`, `ARCHITECTURE.md`, `README`, `docs as source of truth`, `documentation antipattern`.
+
+**Covers:**
+- Audit documentation for drift and unnecessary duplication
+- Write Architecture Decision Records (ADRs) for design choices
+- Maintain domain glossaries for business vocabulary
+- Create thin navigation layers for system orientation
+- Remove documentation that duplicates executable code
 
 ---
 
