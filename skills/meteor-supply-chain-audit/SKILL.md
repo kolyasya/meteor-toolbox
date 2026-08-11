@@ -20,7 +20,7 @@ Run the three sections in order. Each section ends with a pass/fail verdict and 
 **Goal:** confirm exactly one `pnpm-lock.yaml` exists and no competing lockfiles have drifted into source control.
 
 1. Search the repo tree for lockfiles: `package-lock.json`, `npm-shrinkwrap.json`, `yarn.lock`, `pnpm-lock.yaml`.
-2. **FAIL** if any `package-lock.json`, `npm-shrinkwrap.json`, or `yarn.lock` is tracked in git.
+2. **FAIL** if a root-level `package-lock.json`, `npm-shrinkwrap.json`, or `yarn.lock` is tracked in git. (Shrinkwrap files under `packages/*/.npm/package/` are legitimate — Section 2 covers them.)
 3. **FAIL** if there is not exactly one `pnpm-lock.yaml` at the application root.
 4. Check `package.json` for `"packageManager": "pnpm@<version>"`. **FAIL** if absent.
 5. Check `app/.npmrc` for `engine-strict=true`. **FAIL** if absent.
@@ -38,7 +38,7 @@ Run the three sections in order. Each section ends with a pass/fail verdict and 
 > `packages/<name>/.npm/package/npm-shrinkwrap.json` is the **only lock mechanism** available for `Npm.depends` dependencies. It is managed by Meteor's build tool — not by npm or pnpm. It **must** be committed. Its `node_modules/` sibling must not be.
 
 1. Search `packages/*/package.js` for `Npm.depends({...})`. Collect every file and its full dependency map.
-2. For each package found: **FAIL** if `packages/<name>/.npm/package/npm-shrinkwrap.json` does not exist or is not committed to git. An absent shrinkwrap means versions are unpinned. If regeneration is needed, follow [`references/shrinkwrap-regeneration.md`](references/shrinkwrap-regeneration.md).
+2. For each package found: **FAIL** if `packages/<name>/.npm/package/npm-shrinkwrap.json` does not exist or is not committed to git. An absent shrinkwrap means versions are unpinned.
 3. **FAIL** if `packages/<name>/.npm/package/node_modules/` is tracked in git. Run `git ls-files 'packages/*/.npm/package/node_modules'` to check.
 4. Check `.gitignore` for the patterns below. **FAIL** if any are missing:
    ```
@@ -48,11 +48,13 @@ Run the three sections in order. Each section ends with a pass/fail verdict and 
    Do **not** gitignore `npm-shrinkwrap.json` — it must be tracked.
 5. For each committed shrinkwrap, run `git log -1 -- packages/<name>/.npm/package/npm-shrinkwrap.json` and `git log -1 -- packages/<name>/package.js`. **FAIL** if the shrinkwrap commit is older than the last `Npm.depends` edit — it is stale and risks resolving wrong versions.
 6. For each dependency, check the version string. **HIGH RISK** if the string contains `^`, `~`, `*`, or `x` — these are dynamic ranges that drift on rebuild.
-7. Flag any `Npm.depends` entry pointing at a git URL (not a registry version). Meteor has known bugs where git-sourced deps are silently rewritten to registry lookups on regeneration — flag for manual verification that the shrinkwrap still resolves them correctly.
+7. Flag any `Npm.depends` entry pointing at a git URL (not a registry version) — flag for manual verification that the shrinkwrap resolves them correctly after any regeneration.
 8. For each `Npm.depends` entry, record migration feasibility:
    - **Migratable:** package can move to root `package.json` + `tmeasday:check-npm-versions` in `package.js`.
    - **Blocked:** package requires Meteor package internals (must be available at `Npm.require` call time before app boot).
 9. Collect every package+version pinned across all local shrinkwrap files. Emit this list as a separate **"Unaudited by npm audit"** appendix in the report — standard `npm audit` never sees these dependencies; they require manual vulnerability review.
+
+For regeneration of a missing or stale shrinkwrap, see [`references/shrinkwrap-regeneration.md`](references/shrinkwrap-regeneration.md).
 
 **Section 2 done when:** every `Npm.depends` entry has a shrinkwrap status, a staleness verdict, a risk rating, and a migration action; and the unaudited-packages appendix is populated.
 
