@@ -41,6 +41,7 @@ Record the context in the report header. If the context is **package-only**, ski
 5. Check `app/.npmrc` for `engine-strict=true`. **FAIL** if absent.
 6. Check `pnpm-workspace.yaml` or `package.json` for `onlyBuiltDependencies` / `allowBuilds`. List every package in the allowlist; flag any that are not native C++/binary packages.
 7. Confirm `ignore-scripts` is absent or commented out in `.npmrc` (its presence silently breaks the native allowlist).
+8. If the package manager is pnpm, check for the `minimumReleaseAge` option (written as `minimum-release-age` in `.npmrc`, or `minimumReleaseAge` in pnpm workspace/package config). **FAIL** if absent. Advise the user to configure it (e.g., `minimum-release-age=7d`) to block recently published, potentially compromised versions.
 
 **Section 1 done when:** verdict is PASS or every FAIL has an entry in the remediation list.
 
