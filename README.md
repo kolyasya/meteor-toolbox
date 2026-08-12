@@ -14,6 +14,7 @@ Or install a specific skill:
 
 ```bash
 npx skills add kolyasya/meteor-toolbox --skill docs-maintainer
+npx skills add kolyasya/meteor-toolbox --skill info-style-writing
 npx skills add kolyasya/meteor-toolbox --skill meteor-fullstack
 npx skills add kolyasya/meteor-toolbox --skill meteor-supply-chain-audit
 npx skills add kolyasya/meteor-toolbox --skill pr-review-guided
@@ -26,6 +27,7 @@ npx skills add kolyasya/meteor-toolbox --skill pr-review-guided
 | Skill | Description | Install Command |
 |-------|-------------|-----------------|
 | [`docs-maintainer`](#docs-maintainer) | Maintain repository documentation as a supplement to code | `npx skills add kolyasya/meteor-toolbox --skill docs-maintainer` |
+| [`info-style-writing`](#info-style-writing) | Clean up and refactor text using Information Style | `npx skills add kolyasya/meteor-toolbox --skill info-style-writing` |
 | [`meteor-fullstack`](#meteor-fullstack) | Full-stack Meteor 3.x development: async APIs, methods, pub/sub, React integration, MongoDB, GraphQL | `npx skills add kolyasya/meteor-toolbox --skill meteor-fullstack` |
 | [`meteor-supply-chain-audit`](#meteor-supply-chain-audit) | Audit Meteor + pnpm supply chain hygiene: lockfiles, `Npm.depends` risk, and CI enforcement | `npx skills add kolyasya/meteor-toolbox --skill meteor-supply-chain-audit` |
 | [`pr-review-guided`](#pr-review-guided) | Guided, file-by-file GitHub PR review with user-controlled pacing | `npx skills add kolyasya/meteor-toolbox --skill pr-review-guided` |
@@ -48,6 +50,25 @@ npx skills add kolyasya/meteor-toolbox --skill docs-maintainer
 - Maintain domain glossaries for business vocabulary
 - Create thin navigation layers for system orientation
 - Remove documentation that duplicates executable code
+
+---
+
+### `info-style-writing`
+
+Clean up and refactor articles, texts, or messages using Information Style.
+
+```bash
+npx skills add kolyasya/meteor-toolbox --skill info-style-writing
+```
+
+**Triggers on:** "rewrite this", "clean up this text", "make this clearer", "remove fluff", "info style", "edit this article", "improve this message".
+
+**Covers:**
+- Focuses on reader value and cutting fluff/garbage words.
+- Replaces evaluative adjectives with verifiable facts and metrics.
+- Enforces active voice, strong verbs, and one idea per sentence.
+- Improves scannability and structural clarity.
+- Mandates editing passes and a self-check checklist.
 
 ---
 
