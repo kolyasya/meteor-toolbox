@@ -88,47 +88,57 @@ Show the complete sorted list with line counts before beginning reviews. This he
 
 ## Phase 2: Sequential Review
 
-Present files one at a time. **Wait for the user to say "next" (or equivalent) before advancing.**
+Present files one at a time using the fixed block format below. After each file, call `ask_question` with the navigation menu — **do not advance until the user responds**.
 
-The user may also say:
-- "skip" / "skip this one" → note it as deferred, move to next
-- "go back" → re-review the previous file
-- "jump to [file]" → skip ahead to a specific file
-- "done" → end the review and give a summary
+### Per-file output block
 
-### Per-file review process
-
-**Step 1: Show the diff**
-
-Show the raw diff for the file with clear header:
+Output this exact structure for every file:
 
 ```
-### File N of M: [filename] (X changes)
+---
+📄 File N/M · path/to/file.ts (+A / -D)
 
-\```diff
-<diff content here>
-\```
+```diff
+<diff content>
 ```
 
-**Step 2: Gather context — only if needed**
+**What it does:** One sentence describing the change.
 
-Don't read every file the diff touches. Only read surrounding context when you need to confirm a **real bug or defect** — not for curiosity. Good reasons to look further:
-- A return value is used by a caller and the type changed
-- A guard condition was removed — is there another guard?
-- A schema field was added — is it populated everywhere it's returned?
-- A new DB query pattern — does the project enforce async?
+**Issues:**
+- [BUG] `line N` — description. Fix: `exact fix`
+- [WARNING] `line N` — description.
+(Omit section entirely if no issues.)
 
-Read the minimum: check the specific caller, schema, or related file. Don't explore.
+**Verdict:** ✅ Correct | ⚠️ Minor issues | 🔴 Defect — fix before merge
+---
+```
 
-**Step 3: Give the verdict**
+Keep **What it does** to one sentence. For trivial files (type alias, import reorder) that sentence is the entire analysis — omit Issues and use `✅ Correct`.
 
-Use this structure (adapt length to the file's complexity):
+### Navigation menu
 
-- **Analysis**: What the change does, and whether the logic is sound
-- **Issues** (if any): Specific defects with exact file + line reference and a concrete fix
-- **Verdict**: `Correct` / `Minor issues` / `Defect — fix before merge`
+After outputting the block, call `ask_question` with:
 
-Keep it tight. If the file is a trivial type change or import reorder, one sentence is enough.
+```
+Question: "File N/M reviewed. What next?"
+Options:
+  - "➡️ Next file"
+  - "⏭️ Skip next file"
+  - "↩️ Go back to previous file"
+  - "🏁 Done — show summary"
+```
+
+If the user writes a free-text comment instead of selecting, acknowledge it, apply any requested changes to the verdict, then show the menu again.
+
+### Gather context — only if needed
+
+Read surrounding code only to confirm a **real defect**, not for curiosity. Good triggers:
+- Return type changed and a caller consumes it
+- Guard condition removed — is there another?
+- Schema field added — is it populated everywhere returned?
+- New DB query — does the project enforce async?
+
+Read the minimum: the specific caller, schema, or related file. Don't explore.
 
 ### Severity labels
 
@@ -141,32 +151,26 @@ Follow any labels defined in `PR_REVIEW_INSTRUCTIONS.md`. As defaults:
 | **[SUGGESTION]** | Identifier naming, code smell, minor improvement |
 | **[NIT]** | Cosmetic, docs, trivial — report only if 3+ in same file |
 
-### What NOT to do
-
-- Don't dump an entire file's worth of suggestions at once
-- Don't read files outside the diff unless absolutely necessary for a P0 issue
-- Don't praise good patterns — just move on if it's fine
-- Don't say "consider adding error handling" without showing exactly where and what
-
 ---
 
 ## Phase 3: End of Review
 
-When all non-skipped files have been reviewed, do the following **in order**:
+When the user selects **🏁 Done** or all files are reviewed, do the following **in order**:
 
 ### Step 1: Offer to revisit skipped files
 
-If any files were skipped during the session, **before showing the summary**, explicitly propose going back to them:
+If any files were skipped, call `ask_question` before the summary:
 
-> "We've reviewed all X files. You skipped these Y file(s) earlier:
-> - `path/to/skipped-file.ts`
-> - `path/to/other-file.ts`
->
-> Want to revisit them now, or skip them entirely?"
+```
+Question: "You skipped N file(s): [list]. Revisit them now?"
+Options:
+  - "Yes — review skipped files"
+  - "No — mark as intentionally skipped"
+```
 
-If the user wants to revisit: run the normal per-file review for each skipped file, in order of their original size-sorted position. Update their verdict in the tracking list.
+If yes: run the per-file block for each skipped file in original order. Update their verdict.
 
-If the user declines: mark them as "intentionally skipped" in the summary.
+If no: mark them as `⏭️ Intentionally skipped` in the summary.
 
 ### Step 2: Show the summary
 
@@ -184,8 +188,8 @@ Once all decisions are made (including skipped file disposition):
 | File | Verdict |
 |------|---------|
 | types/common.ts | ✅ Correct |
-| api/documents/helpers.ts | ✅ Correct |
-| api/documentTypes/utils/getRefinementState.ts | ⚠️ Defect — brand missing from active/ready state return |
+| api/documents/helpers.ts | ⚠️ Minor issues |
+| api/documentTypes/utils/getRefinementState.ts | 🔴 Defect — brand missing from active/ready state return |
 | api/some/skipped-file.ts | ⏭️ Intentionally skipped |
 
 **Defects to fix before merge:**
