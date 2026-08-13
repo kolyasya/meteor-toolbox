@@ -20,6 +20,7 @@ npx skills add kolyasya/skills --skill info-style-writing
 npx skills add kolyasya/skills --skill pr-review-guided
 
 # Meteor Skills
+npx skills add kolyasya/skills --skill meteor-circular-deps
 npx skills add kolyasya/skills --skill meteor-fullstack
 npx skills add kolyasya/skills --skill meteor-supply-chain-audit
 ```
@@ -41,6 +42,7 @@ npx skills add kolyasya/skills --skill meteor-supply-chain-audit
 
 | Skill | Description | Install Command |
 |-------|-------------|-----------------|
+| [`meteor-circular-deps`](#meteor-circular-deps) | Diagnose Meteor.js circular dependencies and client/server bundle leaks | `npx skills add kolyasya/skills --skill meteor-circular-deps` |
 | [`meteor-fullstack`](#meteor-fullstack) | Full-stack Meteor 3.x development: async APIs, methods, pub/sub, React integration, MongoDB, GraphQL | `npx skills add kolyasya/skills --skill meteor-fullstack` |
 | [`meteor-supply-chain-audit`](#meteor-supply-chain-audit) | Audit Meteor + pnpm supply chain hygiene: lockfiles, `Npm.depends` risk, and CI enforcement | `npx skills add kolyasya/skills --skill meteor-supply-chain-audit` |
 
@@ -126,6 +128,24 @@ npx skills add kolyasya/skills --skill pr-review-guided
 ---
 
 ### Meteor Skills
+
+#### `meteor-circular-deps`
+
+Diagnose Meteor.js circular dependencies and bundle leaks caused by eager bundling.
+
+```bash
+npx skills add kolyasya/skills --skill meteor-circular-deps
+```
+
+**Triggers on:** `module: falsy`, `Failed to register array mixin`, `Element type is invalid`, undefined imports, barrel/bucket files (`index.js`), or bundle auditing.
+
+**Covers:**
+- Map circular dependencies with `madge`
+- Audit client vs server bundle leaks using `bundle-inspector.js`
+- Identify evaluation order issues in React elements and model mixins
+- Break dependency cycles (concrete module imports, lazy `import()`, dependency injection)
+
+---
 
 #### `meteor-fullstack`
 
