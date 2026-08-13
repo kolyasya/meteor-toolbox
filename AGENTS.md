@@ -1,6 +1,6 @@
 # Repository Rules & Context
 
-This repository (`meteor-toolbox`) contains a set of skills that we develop and publish.
+This repository (`skills`) contains a set of skills that we develop and publish.
 
 ## 🛑 Critical Agent Directives
 
