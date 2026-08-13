@@ -27,7 +27,7 @@ First, look for a **project-specific** review instructions file:
 find . -name "PR_REVIEW_INSTRUCTIONS.md"
 ```
 
-**If found**: read it and treat it as the primary authority throughout the review. It overrides the defaults in this skill. Key things to extract: severity labels, output format, inline comment requirements, GitHub submission rules.
+**If found**: read it strictly to extract content standards (severity labels, inline comment requirements, GitHub submission rules). The review process itself remains strictly governed by this skill: you must always execute the guided, file-by-file interactive flow as defined here.
 
 **If not found**: check whether globally installed review skills are available. Look for any of these skill names: `code-reviewer`, `code-review`, `caveman-review`, `review`, `pr-review`. Check the following locations in order, stopping at the first match:
 
