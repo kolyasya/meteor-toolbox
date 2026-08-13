@@ -60,50 +60,27 @@ Attempt to fetch the PR metadata using the following strategies in order:
 
 Extract: title, base branch, head branch, description/requirements, and any acceptance criteria.
 
-### 4. Fetch the diff
+### 4. Fetch and sort changed files
 
-Attempt to fetch the PR diff and changes using the following strategies in order:
+Build a sorted list of all changed files by **total lines changed (additions + deletions), ascending**, including new and test files. Choose the first available method:
 
-1. **`gh` CLI**:
-   If branches are tracked locally:
+1. **`gh` CLI**: Run this single command to fetch and sort stats perfectly without downloading the raw diff:
    ```bash
-   git diff origin/<base>...HEAD
-   git diff --stat origin/<base>...HEAD
+   gh pr view <PR_NUMBER> --json files --jq '.files | sort_by(.additions + .deletions) | .[] | "\(.path) (+\(.additions) / -\(.deletions))"'
    ```
-   Otherwise, fetch the diff directly from GitHub:
-   ```bash
-   gh pr diff <PR_NUMBER>
-   ```
-2. **GitHub MCP**:
-   - Call `get_pull_request_files` to list the changed files.
-   - For files with small changes, fetch the file contents or comparison via GitHub MCP.
-3. **Local git fetch and compare**:
-   If CLI and MCP are unavailable:
-   - Fetch the remote base branch:
-     ```bash
-     git fetch origin <base>
-     ```
-   - Compare the branches locally:
-     ```bash
-     git diff origin/<base>...HEAD
-     git diff --stat origin/<base>...HEAD
-     ```
-   - If `origin/<base>` cannot be fetched, compare against the parent branch/local default branch (`main` or `master`).
+2. **GitHub MCP**: Call `get_pull_request_files`. Read the `changes` property (or `additions` + `deletions`) for each file in the JSON response, and sort the list in context.
+3. **Local git**: Parse the output of `git diff --stat origin/<base>...HEAD`.
 
-Save the diff to a scratch file for reference throughout the session.
+Once you have the sorted list, fetch the full PR diff (`gh pr diff <PR_NUMBER>` or `git diff`) and save it to a scratch file for reference during the review.
 
-### 5. Sort files by size
-
-Parse the `--stat` output. Build a sorted list of all changed files by **total lines changed (additions + deletions), ascending**. New files and test files count by their actual diff size — don't exclude them.
-
-### 6. Check environment
+### 5. Check environment
 
 ```bash
 cat .meteor/release   # or equivalent version file
 ```
 Note the tech stack (framework version, language) to inform review standards.
 
-### 7. Present the file list
+### 6. Present the file list
 
 Show the complete sorted list with line counts before beginning reviews. This helps the user know what's coming and plan skips.
 
