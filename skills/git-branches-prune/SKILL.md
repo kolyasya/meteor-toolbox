@@ -22,7 +22,7 @@ Read `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/`, `.cursor/skills/`, and a parent
 - **Protected** — long-lived / env / release trains named there
 - **Temporary** — feature, hotfix, merge, buffer, revert, or ticket branches
 
-Cite a source for each pattern. Merge oracles default to `origin/envs/prod3` and `origin/envs/staging`; use the pair AGENTS.md names if it differs.
+Cite a source for each pattern. Merge oracles default to `origin/main` and `origin/staging`; use the pair AGENTS.md names if it differs.
 
 **Host** (GitHub / remote extras: open PRs): use the git/GitHub tool those files name. If none, probe `gh`, then GitHub MCP. If neither works: host is **local git**. Tell the user once: only local git access; open-PR checks skipped. GitHub access is `gh`, MCP, or local git.
 
@@ -37,7 +37,7 @@ When the user states a pattern rule, add it to the roster as source `user` and w
 
 ## Roster
 
-Oracles: `origin/envs/prod3`, `origin/envs/staging`
+Oracles: `origin/main`, `origin/staging`
 Host: gh | github MCP | local git
 
 ### Protected
@@ -49,13 +49,13 @@ Host: gh | github MCP | local git
 ### Temporary
 | Pattern | Source |
 |---|---|
-| `ENG-` | AGENTS.md |
+| `JIRA-` | AGENTS.md |
 | `feature/` `hotfix/` `merge` `buffer` `revert-` | user 2026-08-13 |
 
 ## Keeps
 
-| Branch | Reason | Date |
-|---|---|---|
+| Branch | Author | Latest Commit Date | Reason | Analysis Date |
+|---|---|---|---|---|
 ```
 
 ## 2. Dispatch
@@ -70,7 +70,7 @@ Point it at [chunk.md](chunk.md). Give it:
 - exclude: every branch already in Keeps
 - year: oldest unfinished, or the year in progress
 
-Done when the return has a year, a candidate table of ≤20 rows, and a skipped list. Every candidate row has prod3, staging, and propose. Keep names do not appear.
+Done when the return has a year, a candidate table of ≤20 rows, and a skipped list. Every candidate row has main, staging, and propose. Keep names do not appear.
 
 If the return is incomplete, dispatch again naming the gap. Parent does not inventory, classify, or merge-check.
 

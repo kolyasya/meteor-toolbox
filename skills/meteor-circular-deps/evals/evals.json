@@ -1,0 +1,38 @@
+{
+  "skill_name": "meteor-circular-deps",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Meteor 3 app: server crashes on startup with:\n[Model] Error registering mixin at index 1 for Issues: Error: [Model] Failed to register array mixin at index 1 for Issues (module: falsy)\nStack shows Model.jsx registerMixins, then Requests.jsx, then Messages/index.js and moduleLink lines. What should I check first and how do I prove it's a circular dependency?",
+      "expected_output": "Explains Meteor eager eval / cycles, recommends madge on the implicated paths, bundle map check if client/server boundary suspected, and concrete fix patterns (barrel imports, break cycle edge).",
+      "files": [],
+      "expectations": [
+        "Response recommends running madge (or equivalent) to list cycles",
+        "Response ties module: falsy to incomplete module initialization / cycles",
+        "Response mentions bundle source-map inspection or the bundled bundle-inspector script for client/server leaks when relevant"
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "After I added a small helper file under imports/api/notifications, React started throwing Element type is invalid: expected a string or a class/function but got: undefined. Nothing in the helper imports React. meteor reset did not help. Where do I start?",
+      "expected_output": "Treat as import-order / cycle issue; madge scoped to notifications + consumers; avoid re-export barrels; suggest lazy import or moving shared constants to a leaf module.",
+      "files": [],
+      "expectations": [
+        "Response recommends dependency/cycle analysis (madge or similar), not only React debugging",
+        "Response explains that an unrelated file can reorder evaluation and surface a cycle",
+        "Response suggests narrowing the graph to the affected feature folder"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I use per-domain bucket files common.js / client.js / server.js and import them from inside the same domain. I thought ES modules handle cycles. Meteor build sometimes breaks imports when I add files. How do I audit client vs server bundle contents for accidental leaks?",
+      "expected_output": "Explains Meteor bundling caveat; bucket/barrel pattern risks; run bundle-inspector.js against app.js.map; configure fail-both / fail-server-only regexes; pair with madge.",
+      "files": [],
+      "expectations": [
+        "Response describes using Meteor build output source maps or the bundle-inspector script",
+        "Response warns that in-domain bucket imports amplify cycles",
+        "Response mentions madge or depcruise for cycle detection"
+      ]
+    }
+  ]
+}
