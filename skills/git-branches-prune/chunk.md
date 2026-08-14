@@ -14,7 +14,7 @@ git for-each-ref --format='%(committerdate:format:%Y)' refs/remotes/origin | sor
 
 ## Classify
 
-List that year's remotes oldest-tip-first. Drop names on the exclude list (already in the keep *report*). Classify every remaining name from the roster:
+List that year's remotes oldest-tip-first. Drop names on the exclude list (already in the report's Deleted or Keeps tables). Classify every remaining name from the roster:
 
 - **Protected** → not a candidate
 - **Ephemeral** → candidate
@@ -26,19 +26,32 @@ Done when the chunk has ≤20 candidate names, exclude names are absent, and eve
 
 ## Merge-check
 
-For each candidate, ancestor-check both oracles from the prompt:
+For each candidate, get author and latest commit date:
+
+```bash
+git log -1 --format='%an|%cs' "$b"
+```
+
+Ancestor-check each oracle from the prompt:
 
 ```bash
 git merge-base --is-ancestor "$b" <oracle>
 ```
 
-`yes` on every oracle → **propose delete**. Anything else → **keep**.
+Consolidate merge results into the `Merged Into` column (e.g., `main, staging`, `staging`, or `none`).
+`yes` on every oracle → **propose delete**. Anything else → **keep** (reason: `not merged into <missing oracle>`).
 
-For keep rows, `git cherry -v` against each oracle. A `-` line is an equivalent patch, not a merge. Keep.
+For keep rows, `git cherry -v` against each oracle. A `-` line is an equivalent patch, not a merge. Keep (reason: `cherry-pick only`).
 
-Open-PR check on proposed-delete heads only when host is `gh` or `github MCP`. An open PR moves the row to keep. Host `local git`: skip PR checks.
+Open-PR check on proposed-delete heads only when host is `gh` or `github MCP`:
 
-Done when every candidate has a result per oracle and a propose value.
+```bash
+gh pr list --head "${b#origin/}" --state all --json number,state
+```
+
+An open PR moves the row to keep (reason: `PR #N open`). Host `local git`: skip PR checks (PR column: `-`).
+
+Done when every candidate has author, latest commit date, merged into, PR status, and a propose value with reason if kept.
 
 ## Return
 
@@ -49,9 +62,10 @@ Year: YYYY
 Year counts: <paste uniq -c>
 Remaining ephemeral candidates this year after this chunk: N
 
-| Branch | <oracle> | … | Propose |
-|---|---|---|---|
-| origin/… | yes/no | yes/no | delete/keep |
+| Branch | Author | Latest Commit Date | Merged Into | PR | Propose | Reason |
+|---|---|---|---|---|---|---|
+| origin/… | Name | YYYY-MM-DD | main, staging | #123 (closed) | delete | |
+| origin/… | Name | YYYY-MM-DD | staging | - | keep | not merged into main |
 
 Proposed delete:
 - …
