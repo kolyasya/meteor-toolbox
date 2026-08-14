@@ -35,7 +35,9 @@ Record the context in the report header. If the context is **package-only**, ski
 **Goal:** confirm exactly one `pnpm-lock.yaml` exists and no competing lockfiles have drifted into source control.
 
 1. Search the repo tree for lockfiles: `package-lock.json`, `npm-shrinkwrap.json`, `yarn.lock`, `pnpm-lock.yaml`.
-2. **FAIL** if a root-level `package-lock.json`, `npm-shrinkwrap.json`, or `yarn.lock` is tracked in git. (Shrinkwrap files under `packages/*/.npm/package/` are legitimate — Section 2 covers them.)
+2. **FAIL** if any `package-lock.json`, `npm-shrinkwrap.json`, or `yarn.lock` is tracked in git, **EXCEPT** for:
+   - `package-lock.json` inside `packages/*/` (legitimate for package-level dev tooling).
+   - `npm-shrinkwrap.json` under `packages/*/.npm/package/` (Section 2 covers them).
 3. **FAIL** if there is not exactly one `pnpm-lock.yaml` at the application root.
 4. Check `package.json` for `"packageManager": "pnpm@<version>"`. **FAIL** if absent.
 5. Check `app/.npmrc` for `engine-strict=true`. **FAIL** if absent.
