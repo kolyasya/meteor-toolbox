@@ -1,6 +1,12 @@
 ---
 name: info-style-writing
-description: Clean up and refactor articles, texts, or messages using Information Style. Use when the user asks to rewrite, improve, or edit a piece of text for clarity, remove fluff, replace vague adjectives with facts, fix passive voice, or make content more scannable. Trigger on: "rewrite this", "clean up this text", "make this clearer", "remove fluff", "info style", "edit this article", "improve this message".
+description: >-
+  Clean up and refactor articles, texts, or messages using Information Style.
+  Use when the user asks to rewrite, improve, or edit a piece of text for
+  clarity, remove fluff, replace vague adjectives with facts, fix passive voice,
+  or make content more scannable. Trigger on: "rewrite this", "clean up this
+  text", "make this clearer", "remove fluff", "info style", "edit this
+  article", "improve this message".
 ---
 
 # Information Style
