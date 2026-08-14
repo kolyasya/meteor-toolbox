@@ -1,6 +1,6 @@
 ---
 name: meteor-fullstack
-description: "Full-stack Meteor 3.x development with React, MongoDB, async APIs, methods, pub/sub, and GraphQL. Use this skill when working on any Meteor project — writing methods, publications, subscriptions, React data containers, collection helpers, ORM patterns, REST APIs with accounts-express, Meteor-to-React integration via useTracker/withTracker, async migration from Fibers, optimistic UI, DDP, or debugging Meteor-specific issues like circular dependencies, method stubs, and simulation errors. Trigger on: Meteor, Meteor.js, Meteor 3, MeteorJS, callAsync, useTracker, withTracker, Meteor methods, Meteor publications, Meteor subscriptions, SubsManager, Minimongo, DDP, Mongo.Collection, Meteor.Error, optimistic UI, Fibers migration, meteor async, accounts-express."
+description: "Full-stack Meteor 3.x development with React, MongoDB, async APIs, methods, pub/sub, and GraphQL. Use this skill when working on any Meteor project — writing methods, publications, subscriptions, React data containers, collection helpers, ORM patterns, REST APIs with accounts-express, Meteor-to-React integration via useTracker/withTracker, async migration from Fibers, optimistic UI, DDP, or debugging Meteor-specific issues like circular dependencies, method stubs, and simulation errors. Trigger on: Meteor, Meteor.js, Meteor 3, MeteorJS, callAsync, useTracker, withTracker, Meteor methods, Meteor publications, Meteor subscriptions, SubsManager, Minimongo, DDP, Mongo.Collection, Meteor.Error, optimistic UI, Fibers migration, meteor async, accounts-express. For diagnosing publication observer leaks or async teardown issues, trigger the meteor-observer-leaks skill."
 ---
 
 # Meteor Full-Stack Development (v3.x + React)
@@ -351,6 +351,10 @@ export const MessagesFull = new Mongo.Collection('messagesFull'); // detail view
 Naming convention: `MessagesFull`, `MessagesStripped`, `MessagesList` — whatever communicates the intended field shape. The key is that **each virtual collection has a single, stable field contract**.
 
 > Use this pattern whenever: (a) you need different field shapes of the same document in the same session, (b) you have a public list projection and a richer authenticated detail projection, or (c) you've seen fields mysteriously disappear when a second subscription activates.
+
+### 10. `observeChangesAsync` teardown leaks
+
+In Meteor 3, `observeChangesAsync` returns a **Promise** of a handle, not the handle itself. Promises have no `.stop()` method. If you use it in a publication and don't await it properly before registering `onStop`, the observer will leak and keep running forever, or throw `stop is not a function`. Ensure you use a `stopped` flag, register `onStop` *first*, and only call `.stop()` on the resolved handle.
 
 ---
 

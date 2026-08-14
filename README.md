@@ -22,6 +22,7 @@ npx skills add kolyasya/skills --skill pr-review-guided
 # Meteor Skills
 npx skills add kolyasya/skills --skill meteor-circular-deps
 npx skills add kolyasya/skills --skill meteor-fullstack
+npx skills add kolyasya/skills --skill meteor-observer-leaks
 npx skills add kolyasya/skills --skill meteor-supply-chain-audit
 ```
 
@@ -44,6 +45,7 @@ npx skills add kolyasya/skills --skill meteor-supply-chain-audit
 |-------|-------------|-----------------|
 | [`meteor-circular-deps`](#meteor-circular-deps) | Diagnose Meteor.js circular dependencies and client/server bundle leaks | `npx skills add kolyasya/skills --skill meteor-circular-deps` |
 | [`meteor-fullstack`](#meteor-fullstack) | Full-stack Meteor 3.x development: async APIs, methods, pub/sub, React integration, MongoDB, GraphQL | `npx skills add kolyasya/skills --skill meteor-fullstack` |
+| [`meteor-observer-leaks`](#meteor-observer-leaks) | Hunt Meteor 3 publication observer leaks and teardown issues | `npx skills add kolyasya/skills --skill meteor-observer-leaks` |
 | [`meteor-supply-chain-audit`](#meteor-supply-chain-audit) | Audit Meteor + pnpm supply chain hygiene: lockfiles, `Npm.depends` risk, and CI enforcement | `npx skills add kolyasya/skills --skill meteor-supply-chain-audit` |
 
 ---
@@ -165,6 +167,24 @@ npx skills add kolyasya/skills --skill meteor-fullstack
 - Common pitfalls: simulation errors, `rawCollection()` hooks, DDP queue blocking
 - Accounts, email (`Email.sendAsync`), authorization patterns
 - Reference files for deeper topics: pub/sub, async migration, performance, architecture
+
+---
+
+#### `meteor-observer-leaks`
+
+Use when hunting Meteor 3 publication observer leaks, server `observeChanges` / `observeChangesAsync` / `observeAsync`, `stop is not a function` in onStop, silent `stop?.()` no-ops, or access-revocation observers after a Fibers→async port.
+
+```bash
+npx skills add kolyasya/skills --skill meteor-observer-leaks
+```
+
+**Triggers on:** `observeChanges`, `observeChangesAsync`, `observeAsync`, `stop is not a function`, publication leak, observer leak.
+
+**Covers:**
+- Grep-based hunting protocol for `observeChanges` variants
+- Classification matrix for observer leak severity (throw vs silent leak vs race condition)
+- Validation of fixed async teardown patterns (flag + `onStop` first + await)
+- Guidance on ignoring MiniMongo and Monti APM stack traces
 
 ---
 
