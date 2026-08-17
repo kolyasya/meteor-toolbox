@@ -125,7 +125,8 @@ npx skills add kolyasya/skills --skill pr-review-guided
 - Reviews one file per turn — user says "next" to advance, "skip" to defer, "done" to end
 - Reads surrounding codebase context only when needed to confirm a real defect
 - Respects project-specific `PR_REVIEW_INSTRUCTIONS.md` when present; falls back to `code-reviewer` or `caveman-review` skill standards
-- Produces a summary table with per-file verdicts and a list of defects to fix before merge
+- Verifies repository `AGENTS.md` and branch/merge rules for safe merging
+- Produces a summary table with per-file verdicts, defects to fix, and merge readiness assessment
 
 ---
 

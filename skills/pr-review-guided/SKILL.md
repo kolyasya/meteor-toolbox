@@ -1,6 +1,6 @@
 ---
 name: pr-review-guided
-description: Guided, file-by-file PR review where the user controls the pace. Fetches the PR diff and metadata (using gh CLI, GitHub MCP, or local git fallbacks), sorts all changed files by number of lines (smallest first), and reviews them one-by-one as the user says "next". For each file it shows the diff, reads relevant surrounding context from the codebase (callers, schemas, tests) only when needed to confirm a bug, then gives a concise analysis and verdict. Flags real defects inline with exact fix proposals. Respects project-specific PR_REVIEW_INSTRUCTIONS.md rules when present. Use this skill whenever someone wants to review a GitHub PR interactively, step through a PR file by file, or do a guided code review of a pull request. Also triggers on "review pr", "sequential review", "file by file review", or "let's review this PR together".
+description: Guided, file-by-file PR review where the user controls the pace. Fetches the PR diff and metadata (using gh CLI, GitHub MCP, or local git fallbacks), sorts all changed files by number of lines (smallest first), reviews them one-by-one as the user says "next", and validates repository merge and branch rules. For each file it shows the diff, reads relevant surrounding context from the codebase (callers, schemas, tests) only when needed to confirm a bug, then gives a concise analysis and verdict. Flags real defects inline with exact fix proposals. Respects project-specific PR_REVIEW_INSTRUCTIONS.md, AGENTS.md, and merge safety rules. Use this skill whenever someone wants to review a GitHub PR interactively, step through a PR file by file, or do a guided code review of a pull request. Also triggers on "review pr", "sequential review", "file by file review", or "let's review this PR together".
 ---
 
 # Guided PR Review
@@ -172,13 +172,34 @@ If yes: run the per-file block for each skipped file in original order. Update t
 
 If no: mark them as `⏭️ Intentionally skipped` in the summary.
 
-### Step 2: Show the summary
+### Step 2: Verify merge and branch rules
 
-Once all decisions are made (including skipped file disposition):
+Analyze repository instructions to verify that the pull request is safe to merge:
+
+1. **Locate rule files:**
+   Read project rule files if they exist:
+   - `AGENTS.md`, `CLAUDE.md`, `.agents/rules/`
+   - `CONTRIBUTING.md`, `.github/pull_request_template.md`
+   - `PR_REVIEW_INSTRUCTIONS.md`
+
+2. **Verify PR against rules:**
+   - **Branch rules:** Verify the target base branch (e.g. `staging`, `main`) and the source branch naming conventions against documented workflow rules.
+   - **Required additions:** Check if the changes require accompanying updates (such as unit tests, database migrations, changelog entries, version increments, or documentation).
+   - **Merge safety & destructive changes:** Check for breaking changes, destructive schema modifications, new environment variables, or package updates that require explicit review.
+
+3. **Determine merge readiness:**
+   - 🟢 **Safe to merge:** All files reviewed, no open defects, and all repository branch and merge rules pass.
+   - 🟡 **Caution / Incomplete requirements:** Non-blocking warnings exist, or required non-code updates (e.g., changelog or documentation) are missing.
+   - 🔴 **Blocked:** Open defects exist, or the PR violates branch/merge rules (e.g., wrong target branch, destructive schema change without approval).
+
+### Step 3: Show the summary
+
+Once all decisions and checks are complete:
 
 1. Show a **summary table**: file → verdict
 2. List open defects that need addressing before merge
-3. If `PR_REVIEW_INSTRUCTIONS.md` or the fallback skill has GitHub submission rules, remind the user — don't post comments to GitHub unless they explicitly ask
+3. Show the **Merge Safety & Rules Assessment**
+4. If `PR_REVIEW_INSTRUCTIONS.md` or the fallback skill has GitHub submission rules, remind the user — do not post comments to GitHub unless they explicitly ask
 
 ### Summary format
 
@@ -194,6 +215,13 @@ Once all decisions are made (including skipped file disposition):
 
 **Defects to fix before merge:**
 1. `getRefinementState.ts` — Add `brand` to the final return block (lines 86-92)
+
+**Merge Safety & Rules Check:**
+- **Branch Target:** ✅ Target branch `staging` matches repository workflow rules
+- **Accompanying Changes:** ⚠️ No test file added for new helper `getRefinementState.ts`
+- **Safety / Destructive Ops:** ✅ No breaking schema changes or destructive operations detected
+
+**Merge Readiness Verdict:** 🔴 Blocked (fix 1 defect before merge)
 
 **Skipped:**
 - `api/some/skipped-file.ts` — not reviewed by user's choice
