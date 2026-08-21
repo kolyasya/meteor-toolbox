@@ -1,11 +1,16 @@
 ---
 name: pr-review-guided
-description: Guided, file-by-file PR review where the user controls the pace. Fetches the PR diff and metadata (using gh CLI, GitHub MCP, or local git fallbacks), sorts all changed files by number of lines (smallest first), reviews them one-by-one as the user says "next", and validates repository merge and branch rules. For each file it shows the diff, reads relevant surrounding context from the codebase (callers, schemas, tests) only when needed to confirm a bug, then gives a concise analysis and verdict. Flags real defects inline with exact fix proposals. Respects project-specific PR_REVIEW_INSTRUCTIONS.md, AGENTS.md, and merge safety rules. Use this skill whenever someone wants to review a GitHub PR interactively, step through a PR file by file, or do a guided code review of a pull request. Also triggers on "review pr", "sequential review", "file by file review", or "let's review this PR together".
+description: Guided, file-by-file PR review where the user controls the pace. Fetches the PR diff and metadata (using gh CLI, GitHub MCP, or local git fallbacks), sorts all changed files by number of lines (smallest first), reviews them one-by-one as the user says "next", and validates repository merge and branch rules. For each file it shows the diff, reads relevant surrounding context from the codebase (callers, schemas, tests) only when needed to confirm a bug, then gives a concise analysis and verdict. Flags real defects inline with exact fix proposals. Respects project-specific PR_REVIEW_INSTRUCTIONS.md, AGENTS.md, and merge safety rules. Use this skill whenever someone wants to review a GitHub PR interactively, step through a PR file by file, or do a guided code review of a pull request. Also triggers on "review pr", "sequential review", "file by file review", "let's review this PR together", "auto review", or "automated review".
 ---
 
 # Guided PR Review
 
-A conversational, file-by-file PR review. The user drives the pace — you prepare everything upfront, then surface one file per turn.
+A file-by-file PR review. Two modes, same output format:
+
+- **Manual** (default): the user drives the pace — one file per turn, navigation menu after each.
+- **Automated**: you advance through all files without pausing, then run Phase 3.
+
+Detect mode from the user's request. Triggers for automated: "auto", "automated mode", "review all", "no pauses".
 
 ## Why this approach
 
@@ -88,7 +93,11 @@ Show the complete sorted list with line counts before beginning reviews. This he
 
 ## Phase 2: Sequential Review
 
-Present files one at a time using the fixed block format below. After each file, call `ask_question` with the navigation menu — **do not advance until the user responds**.
+Present files one at a time using the fixed block format below.
+
+**Manual mode:** after each file, call `ask_question` with the navigation menu — **do not advance until the user responds**.
+
+**Automated mode:** after each file, continue immediately to the next without pausing. When all files are done, proceed directly to Phase 3.
 
 ### Per-file output block
 
@@ -115,7 +124,7 @@ Output this exact structure for every file:
 
 Keep **What it does** to one sentence. For trivial files (type alias, import reorder) that sentence is the entire analysis — omit Issues and use `✅ Correct`.
 
-### Navigation menu
+### Navigation menu (manual mode only)
 
 After outputting the block, call `ask_question` with:
 
@@ -129,6 +138,8 @@ Options:
 ```
 
 If the user writes a free-text comment instead of selecting, acknowledge it, apply any requested changes to the verdict, then show the menu again.
+
+In **automated mode**, skip this menu entirely. A free-text comment mid-run pauses the run — acknowledge it, then continue.
 
 ### Gather context — only if needed
 
